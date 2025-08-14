@@ -35,6 +35,7 @@ class MovieSerializer(serializers.ModelSerializer):
         required=False
     )
     is_favorite = serializers.SerializerMethodField()
+    is_in_watchlist = serializers.SerializerMethodField()
     user_rating = serializers.SerializerMethodField()
     
     class Meta:
@@ -42,12 +43,18 @@ class MovieSerializer(serializers.ModelSerializer):
         fields = ('id', 'title', 'overview', 'release_date', 'poster_path',
                   'backdrop_path', 'tmdb_id', 'genres', 'genre_ids',
                   'popularity', 'vote_average', 'vote_count', 
-                  'is_favorite', 'user_rating', 'average_rating')
+                  'is_favorite', 'is_in_watchlist', 'user_rating', 'average_rating')
     
     def get_is_favorite(self, obj):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
             return Favorite.objects.filter(user=request.user, movie=obj).exists()
+        return False
+    
+    def get_is_in_watchlist(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return Watchlist.objects.filter(user=request.user, movie=obj).exists()
         return False
     
     def get_user_rating(self, obj):

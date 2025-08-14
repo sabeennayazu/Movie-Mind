@@ -60,7 +60,10 @@ const Navbar = () => {
               <Link to="/" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-800">Home</Link>
               <Link to="/recommendations" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-800">Recommendations</Link>
               {isAuthenticated && (
-                <Link to="/favorites" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-800">Favorites</Link>
+                <>
+                  <Link to="/favorites" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-800">Favorites</Link>
+                  <Link to="/watchlist" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-800">Watchlist</Link>
+                </>
               )}
             </div>
           </div>
@@ -144,7 +147,10 @@ const Navbar = () => {
                 <Link to="/" onClick={closeDropdowns} className="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-800">Home</Link>
                 <Link to="/recommendations" onClick={closeDropdowns} className="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-800">Recommendations</Link>
                 {isAuthenticated && (
-                    <Link to="/favorites" onClick={closeDropdowns} className="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-800">Favorites</Link>
+                    <>
+                        <Link to="/favorites" onClick={closeDropdowns} className="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-800">Favorites</Link>
+                        <Link to="/watchlist" onClick={closeDropdowns} className="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-800">Watchlist</Link>
+                    </>
                 )}
             </div>
 

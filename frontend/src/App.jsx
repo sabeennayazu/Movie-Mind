@@ -13,6 +13,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import MovieDetail from './pages/MovieDetail'
 import Favorites from './pages/Favorites'
+import Watchlist from './pages/Watchlist'
 import Recommendations from './pages/Recommendations'
 import Search from './pages/Search'
 import Profile from './pages/Profile'
@@ -58,6 +59,14 @@ function App() {
                 }
               />
               <Route
+                path="/watchlist"
+                element={
+                  <ProtectedRoute>
+                    <Watchlist />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/recommendations"
                 element={
                   <ProtectedRoute>
@@ -70,16 +79,6 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Profile />
-                  </ProtectedRoute>
-                }
-              />
-
-
-              <Route
-                path="/recommendations"
-                element={
-                  <ProtectedRoute>
-                    <Recommendations />
                   </ProtectedRoute>
                 }
               />

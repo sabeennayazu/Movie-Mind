@@ -149,7 +149,29 @@ class WatchlistViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        return Watchlist.objects.filter(user=self.request.user).select_related('movie')
+        return Watchlist.objects.filter(user=self.request.user).select_related('movie').prefetch_related('movie__genres')
+    
+    @action(detail=False, methods=['post'], url_path='toggle')
+    def toggle_watchlist(self, request):
+        movie_id = request.data.get('movie_id')
+        if not movie_id:
+            return Response({'error': 'movie_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        movie = get_object_or_404(Movie, id=movie_id)
+        watchlist_item, created = Watchlist.objects.get_or_create(
+            user=request.user,
+            movie=movie,
+        )
+        
+        if not created:
+            # If it already existed, remove it
+            watchlist_item.delete()
+            return Response({'status': 'removed'}, status=status.HTTP_200_OK)
+        
+        return Response(
+            WatchlistSerializer(watchlist_item, context={'request': request}).data,
+            status=status.HTTP_201_CREATED
+        )
 
 
 @api_view(['GET'])

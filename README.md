@@ -63,6 +63,7 @@ pip install -r requirements.txt
    ```
    SECRET_KEY=your-secret-key
    DEBUG=True
+   oooooooooo55\
    TMDB_API_KEY=your-tmdb-api-key  # Optional - get from themoviedb.org
    ```
 

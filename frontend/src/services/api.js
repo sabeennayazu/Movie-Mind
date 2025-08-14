@@ -125,6 +125,21 @@ const favoriteService = {
     api.delete(`/favorites/${favoriteId}/`)
 };
 
+// Watchlist services
+const watchlistService = {
+  getWatchlist: () => 
+    api.get('/watchlist/'),
+  
+  toggleWatchlist: (movieId) => 
+    api.post('/watchlist/toggle/', { movie_id: movieId }),
+    
+  addToWatchlist: (movieId) => 
+    api.post('/watchlist/', { movie_id: movieId }),
+    
+  removeFromWatchlist: (watchlistId) => 
+    api.delete(`/watchlist/${watchlistId}/`)
+};
+
 // Rating services
 const ratingService = {
   getRatings: () => 
@@ -155,6 +170,7 @@ export {
   authService,
   movieService,
   favoriteService,
+  watchlistService,
   ratingService,
   recommendationService
 };

@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchMovie, fetchSimilarMovies, clearCurrentMovie } from '../store/slices/movieSlice';
-import { toggleFavorite } from '../store/slices/favoriteSlice';
+import { toggleFavorite, fetchFavorites } from '../store/slices/favoriteSlice';
+import { toggleWatchlist, fetchWatchlist } from '../store/slices/watchlistSlice';
 import { ratingService } from '../services/api';
 import MovieList from '../components/MovieList';
 import { toast } from 'react-toastify';
@@ -11,33 +12,42 @@ const MovieDetail = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
+
   const { currentMovie, similarMovies, loading } = useSelector(state => state.movies);
   const { isAuthenticated } = useSelector(state => state.auth);
   const { favorites } = useSelector(state => state.favorites);
-  
+  const { watchlist } = useSelector(state => state.watchlist);
+
   const [userRating, setUserRating] = useState(0);
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [ratingLoading, setRatingLoading] = useState(false);
-  
+
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState([]);
   const [commentsLoading, setCommentsLoading] = useState(false);
-  
+
   // Check if movie is in favorites
-  const isFavorite = favorites.some(fav => fav.movie?.id === parseInt(id));
-  
+  const isFavorite = favorites.some(fav => fav.movie?.id === parseInt(id)) || currentMovie?.is_favorite;
+  // Check if movie is in watchlist
+  const isInWatchlist = watchlist.some(item => item.movie?.id === parseInt(id)) || currentMovie?.is_in_watchlist;
+
   useEffect(() => {
     // Reset state when component mounts
     setUserRating(0);
     setRatingSubmitted(false);
     setComment('');
     setComments([]);
-    
+
     // Fetch movie and similar movies
     dispatch(fetchMovie(id));
     dispatch(fetchSimilarMovies(id));
-    
+
+    // Fetch favorites and watchlist if authenticated
+    if (isAuthenticated) {
+      dispatch(fetchFavorites());
+      dispatch(fetchWatchlist());
+    }
+
     // Fetch comments for this movie
     const fetchComments = async () => {
       try {
@@ -51,49 +61,58 @@ const MovieDetail = () => {
         setCommentsLoading(false);
       }
     };
-    
+
     fetchComments();
-    
+
     return () => {
       dispatch(clearCurrentMovie());
     };
   }, [dispatch, id]);
-  
+
   const handleFavoriteToggle = () => {
     if (!isAuthenticated) {
       navigate('/login');
       return;
     }
-    
+
     dispatch(toggleFavorite(parseInt(id)));
   };
-  
+
+  const handleWatchlistToggle = () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    dispatch(toggleWatchlist(parseInt(id)));
+  };
+
   const handleRatingChange = (newRating) => {
     if (!isAuthenticated) {
       navigate('/login');
       return;
     }
-    
+
     setUserRating(newRating);
   };
-  
+
   const handleSubmitRating = async () => {
     if (!isAuthenticated) {
       navigate('/login');
       return;
     }
-    
+
     if (userRating === 0) {
       toast.warning('Please select a rating');
       return;
     }
-    
+
     try {
       setRatingLoading(true);
       await ratingService.rateMovie(id, userRating, comment);
       setRatingSubmitted(true);
       toast.success('Rating and comment submitted successfully!');
-      
+
       // Refresh comments list
       const response = await ratingService.getMovieRatings(id);
       setComments(response.data);
@@ -105,13 +124,13 @@ const MovieDetail = () => {
       setRatingLoading(false);
     }
   };
-  
+
   const formatReleaseDate = (dateString) => {
     if (!dateString) return 'Unknown';
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
-  
+
   if (loading || !currentMovie) {
     return (
       <div className="container mx-auto px-4 py-12">
@@ -131,15 +150,15 @@ const MovieDetail = () => {
       </div>
     );
   }
-  
+
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="flex flex-col md:flex-row gap-8">
         {/* Movie Poster */}
         <div className="w-full md:w-1/3 lg:w-1/4">
           <div className="relative">
-            <img 
-              src={currentMovie.poster_path ? `https://image.tmdb.org/t/p/w500${currentMovie.poster_path}` : '/placeholder-poster.jpg'} 
+            <img
+              src={currentMovie.poster_path ? `https://image.tmdb.org/t/p/w500${currentMovie.poster_path}` : '/placeholder-poster.jpg'}
               alt={currentMovie.title}
               className="w-full rounded-lg shadow-lg"
             />
@@ -153,13 +172,23 @@ const MovieDetail = () => {
               </svg>
               {isFavorite ? 'Favorited' : 'Add to Favorites'}
             </button>
+            <button
+              type="button"
+              onClick={handleWatchlistToggle}
+              className={`flex items-center gap-2 px-4 py-2 mt-2 ${isInWatchlist ? 'text-blue-500' : 'text-white'} border ${isInWatchlist ? 'border-blue-500' : 'border-white'} rounded-full hover:bg-blue-500 hover:text-white hover:border-blue-500 transition duration-300`}
+            >
+              <svg width="24" height="24" fill={isInWatchlist ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+              </svg>
+              {isInWatchlist ? 'In Watchlist' : 'Add to Watchlist'}
+            </button>
           </div>
         </div>
-        
+
         {/* Movie Details */}
         <div className="flex-1">
           <h1 className="text-3xl font-bold mb-2">{currentMovie.title}</h1>
-          
+
           <div className="flex items-center mb-4">
             <div className="flex items-center mr-4">
               <span className="rating-star mr-1">★</span>
@@ -169,9 +198,9 @@ const MovieDetail = () => {
               {formatReleaseDate(currentMovie.release_date)}
             </span>
           </div>
-          
+
           <p className="text-gray-200 mb-6">{currentMovie.overview}</p>
-          
+
           {/* Genres */}
           <div className="mb-6">
             <h3 className="text-lg font-semibold mb-2">Genres</h3>
@@ -183,11 +212,11 @@ const MovieDetail = () => {
               ))}
             </div>
           </div>
-          
+
           {/* User Rating Section */}
           <div className="mb-8">
             <h3 className="text-lg font-semibold mb-2">Rate this movie</h3>
-            
+
             {ratingSubmitted ? (
               <div className="text-green-500 mb-2">
                 Your rating has been submitted. Thank you!
@@ -200,9 +229,8 @@ const MovieDetail = () => {
                       type="button"
                       key={star}
                       onClick={() => handleRatingChange(star)}
-                      className={`w-8 h-8 text-xl focus:outline-none ${
-                        star <= userRating ? 'text-yellow-400' : 'text-gray-500'
-                      }`}
+                      className={`w-8 h-8 text-xl focus:outline-none ${star <= userRating ? 'text-yellow-400' : 'text-gray-500'
+                        }`}
                     >
                       ★
                     </button>
@@ -211,7 +239,7 @@ const MovieDetail = () => {
                     <span className="ml-2 text-yellow-400 font-semibold">{userRating}/10</span>
                   )}
                 </div>
-                
+
                 <div className="mb-4 w-full">
                   <textarea
                     className="w-full px-3 py-2 border rounded-md text-gray-800"
@@ -221,16 +249,15 @@ const MovieDetail = () => {
                     rows="3"
                   />
                 </div>
-                
+
                 <button
                   type="button"
                   onClick={handleSubmitRating}
                   disabled={!userRating || ratingLoading}
-                  className={`self-start px-4 py-2 rounded-md ${
-                    userRating && !ratingLoading
-                      ? 'bg-red-600 hover:bg-red-700' 
-                      : 'bg-gray-700 cursor-not-allowed'
-                  } transition-colors`}
+                  className={`self-start px-4 py-2 rounded-md ${userRating && !ratingLoading
+                    ? 'bg-red-600 hover:bg-red-700'
+                    : 'bg-gray-700 cursor-not-allowed'
+                    } transition-colors`}
                 >
                   {ratingLoading ? 'Submitting...' : 'Submit Rating & Comment'}
                 </button>
@@ -239,7 +266,7 @@ const MovieDetail = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Comments Section */}
       <div className="mt-8 mb-6">
         <h2 className="text-2xl font-bold mb-4">User Comments</h2>
@@ -271,7 +298,7 @@ const MovieDetail = () => {
           <p className="text-gray-400">No comments yet. Be the first to comment!</p>
         )}
       </div>
-      
+
       {/* Similar Movies */}
       <div className="mt-12">
         <MovieList movies={similarMovies} title="Similar Movies You Might Like" loading={loading} />
