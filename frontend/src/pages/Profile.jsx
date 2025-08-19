@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { authService } from '../services/api';
 
 const Profile = () => {
   // Assuming 'user' object with email and username is in your Redux state
@@ -47,6 +48,15 @@ const Profile = () => {
     setFormData(prev => ({ ...prev, oldPassword: '', newPassword: '', confirmPassword: '' }));
   };
 
+  useEffect(() => {
+    setFormData({
+      username: user?.username || '',
+      oldPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    });
+  }, [user]);
+
   return (
     <div className="bg-gray-100 min-h-screen">
       <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
@@ -87,8 +97,8 @@ const Profile = () => {
 
                 {/* Old Password Field */}
                 <div className="md:col-span-2">
-                    <h3 className="text-lg font-medium text-gray-900 mt-6">Change Password</h3>
-                    <hr className="my-4"/>
+                  <h3 className="text-lg font-medium text-gray-900 mt-6">Change Password</h3>
+                  <hr className="my-4" />
                 </div>
 
                 <div className="md:col-span-2">
@@ -132,8 +142,8 @@ const Profile = () => {
                 </div>
               </div>
 
-                {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-                {success && <p className="mt-4 text-sm text-green-600">{success}</p>}
+              {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+              {success && <p className="mt-4 text-sm text-green-600">{success}</p>}
 
               <div className="flex justify-end mt-8">
                 <button

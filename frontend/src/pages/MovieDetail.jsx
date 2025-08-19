@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux'; 
 import { fetchMovie, fetchSimilarMovies, clearCurrentMovie } from '../store/slices/movieSlice';
 import { toggleFavorite, fetchFavorites } from '../store/slices/favoriteSlice';
 import { toggleWatchlist, fetchWatchlist } from '../store/slices/watchlistSlice';
@@ -28,8 +28,12 @@ const MovieDetail = () => {
 
   // Check if movie is in favorites
   const isFavorite = favorites.some(fav => fav.movie?.id === parseInt(id)) || currentMovie?.is_favorite;
+  // Toggle favorite state
+  const [isStateFav, setIsStateFav] = useState(isFavorite);
   // Check if movie is in watchlist
   const isInWatchlist = watchlist.some(item => item.movie?.id === parseInt(id)) || currentMovie?.is_in_watchlist;
+
+  const [isWatchList, setIsWatchList] = useState(isInWatchlist);
 
   useEffect(() => {
     // Reset state when component mounts
@@ -76,6 +80,8 @@ const MovieDetail = () => {
     }
 
     dispatch(toggleFavorite(parseInt(id)));
+    setIsStateFav(!isStateFav);
+    console.log(isStateFav);
   };
 
   const handleWatchlistToggle = () => {
@@ -85,6 +91,7 @@ const MovieDetail = () => {
     }
 
     dispatch(toggleWatchlist(parseInt(id)));
+    setIsWatchList(!isWatchList);
   };
 
   const handleRatingChange = (newRating) => {
@@ -165,22 +172,22 @@ const MovieDetail = () => {
             <button
               type="button"
               onClick={handleFavoriteToggle}
-              className={`flex items-center gap-2 px-4 py-2 ${isFavorite ? 'text-red-500' : 'text-white'} border ${isFavorite ? 'border-red-500' : 'border-white'} rounded-full hover:bg-red-500 hover:text-white hover:border-red-500 transition duration-300`}
+              className={`flex items-center gap-2 px-4 py-2 ${isStateFav ? 'text-red-500' : 'text-white'} border ${isStateFav ? 'border-red-500' : 'border-white'} rounded-full hover:bg-red-500 hover:text-white hover:border-red-500 transition duration-300`}
             >
-              <svg width="24" height="24" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <svg width="24" height="24" fill={isStateFav ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
               </svg>
-              {isFavorite ? 'Favorited' : 'Add to Favorites'}
+              {isStateFav ? 'Favorited' : 'Add to Favorites'}
             </button>
             <button
               type="button"
               onClick={handleWatchlistToggle}
-              className={`flex items-center gap-2 px-4 py-2 mt-2 ${isInWatchlist ? 'text-blue-500' : 'text-white'} border ${isInWatchlist ? 'border-blue-500' : 'border-white'} rounded-full hover:bg-blue-500 hover:text-white hover:border-blue-500 transition duration-300`}
+              className={`flex items-center gap-2 px-4 py-2 mt-2 ${isWatchList ? 'text-blue-500' : 'text-white'} border ${isWatchList ? 'border-blue-500' : 'border-white'} rounded-full hover:bg-blue-500 hover:text-white hover:border-blue-500 transition duration-300`}
             >
-              <svg width="24" height="24" fill={isInWatchlist ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <svg width="24" height="24" fill={isWatchList ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
               </svg>
-              {isInWatchlist ? 'In Watchlist' : 'Add to Watchlist'}
+              {isWatchList ? 'In Watchlist' : 'Add to Watchlist'}
             </button>
           </div>
         </div>
@@ -278,7 +285,7 @@ const MovieDetail = () => {
               <div key={comment.id} className="bg-gray-800 p-4 rounded-lg">
                 <div className="flex justify-between items-center mb-2">
                   <div className="flex items-center">
-                    <span className="font-semibold">{comment.user?.username || 'Anonymous'}</span>
+                    <span className="font-semibold">{comment.username || 'Anonymous'}</span>
                     <span className="ml-3 text-yellow-400 font-semibold flex items-center">
                       <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
