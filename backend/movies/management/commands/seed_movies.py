@@ -255,3 +255,71 @@ class Command(BaseCommand):
                 break
                 
         self.stdout.write(f"Created {created_count} movies from TMDB API")
+
+    def fetch_nepali_movies(self, count):
+        """Fetch Nepali movies from TMDB API"""
+        api_key = os.environ.get('TMDB_API_KEY')
+        if not api_key:
+            self.stdout.write(self.style.ERROR('TMDB_API_KEY not found in environment variables'))
+            return
+
+        tmdb_genre_map = {
+            28: "Action", 12: "Adventure", 16: "Animation", 35: "Comedy",
+            80: "Crime", 99: "Documentary", 18: "Drama", 10751: "Family",
+            14: "Fantasy", 36: "History", 27: "Horror", 10402: "Music",
+            9648: "Mystery", 10749: "Romance", 878: "Science Fiction",
+            53: "Thriller", 10752: "War", 37: "Western"
+        }
+
+        url = f"https://api.themoviedb.org/3/discover/movie?api_key={api_key}&with_original_language=ne&sort_by=popularity.desc"
+        created_count, page = 0, 1
+
+        while created_count < count:
+            response = requests.get(f"{url}&page={page}")
+            if response.status_code != 200:
+                self.stdout.write(self.style.ERROR(f'Error fetching from TMDB: {response.status_code}'))
+                break
+
+            data = response.json()
+            if not data.get('results'):
+                break
+
+            for movie_data in data['results']:
+                if created_count >= count:
+                    break
+
+                title_lower = movie_data.get('title', '').lower()
+                overview_lower = movie_data.get('overview', '').lower()
+                if 'sex' in title_lower or 'sex' in overview_lower:
+                    continue
+
+                if Movie.objects.filter(tmdb_id=movie_data['id']).exists():
+                    continue
+
+                movie = Movie(
+                    title=movie_data['title'],
+                    overview=movie_data['overview'],
+                    release_date=datetime.datetime.strptime(movie_data['release_date'], '%Y-%m-%d').date() if movie_data.get('release_date') else datetime.date.today(),
+                    poster_path=f"https://image.tmdb.org/t/p/w500{movie_data['poster_path']}" if movie_data.get('poster_path') else None,
+                    backdrop_path=f"https://image.tmdb.org/t/p/original{movie_data['backdrop_path']}" if movie_data.get('backdrop_path') else None,
+                    tmdb_id=movie_data['id'],
+                    popularity=movie_data['popularity'],
+                    vote_average=movie_data['vote_average'],
+                    vote_count=movie_data['vote_count']
+                )
+                movie.save()
+
+                for genre_id in movie_data.get('genre_ids', []):
+                    if genre_id in tmdb_genre_map:
+                        try:
+                            genre = Genre.objects.get(name=tmdb_genre_map[genre_id])
+                            movie.genres.add(genre)
+                        except Genre.DoesNotExist:
+                            pass
+
+                created_count += 1
+                self.stdout.write(f"Created Nepali movie: {movie.title}")
+
+            page += 1
+
+        self.stdout.write(f"Created {created_count} Nepali movies from TMDB API")
