@@ -41,21 +41,22 @@ A full-stack movie recommendation web application with personalized content-base
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd movie-agent
-```
+git clone <repository-url> #git clone ko satta zip file download gara
+cd movie-mind
+
+#python installed huna parxa pc ma to run backend
 
 2. Create and activate a virtual environment (optional but recommended):
 ```bash
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+On Windows: venv\Scripts\activate # venv vanya chai virtual environment ho.backend run garna venv activate huna parxa. so python -m venv venv le install garxa. and venv\Scripts\activate le chai virtual env activate garxa
 ```
 
 3. Install backend dependencies:
 ```bash
 cd backend
 pip install -r requirements.txt
-```
+
 
 4. Set up environment variables:
    - Create a `.env` file in the `backend` directory
@@ -76,6 +77,7 @@ python manage.py migrate
 ```bash
 # With TMDB API key
 python manage.py seed_movies
+python manage.py shell -c "from movies.management.commands.seed_movies import Command; Command().fetch_nepali_movies(20)"
 
 # Using sample data
 python manage.py seed_movies --sample

@@ -17,7 +17,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         use_sample = options.get('sample', False)
-        count = options.get('count', 50)
+        count = options.get('count', 100)
         
         # Create genres first
         self.create_genres()
